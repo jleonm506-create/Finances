@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#16201C"/>
+  <g transform="translate(76 116) scale(3)">
+    <path d="M96 74 C112 70 116 52 104 44" fill="none" stroke="#C97A3A" stroke-width="7" stroke-linecap="round"/>
+    <ellipse cx="60" cy="74" rx="34" ry="22" fill="#E8A05A"/>
+    <ellipse cx="60" cy="80" rx="20" ry="12" fill="#F6D9B4"/>
+    <polygon points="38,28 40,4 56,20" fill="#E8A05A"/><polygon points="82,28 80,4 64,20" fill="#E8A05A"/>
+    <polygon points="42,25 43,10 53,20" fill="#F2B7B0"/><polygon points="78,25 77,10 67,20" fill="#F2B7B0"/>
+    <circle cx="60" cy="42" r="26" fill="#E8A05A"/>
+    <path d="M46 20 q3 -6 6 0 M58 17 q3 -7 6 0 M70 20 q3 -6 6 0" fill="none" stroke="#C97A3A" stroke-width="2.5" stroke-linecap="round"/>
+    <path d="M44 43 q5 -6 10 0 M66 43 q5 -6 10 0" fill="none" stroke="#16201C" stroke-width="2.5" stroke-linecap="round"/>
+    <polygon points="57,50 63,50 60,54" fill="#D67D6E"/>
+    <path d="M60 54 q-4 5 -8 2 M60 54 q4 5 8 2" fill="none" stroke="#16201C" stroke-width="1.6" stroke-linecap="round"/>
+    <g stroke="#C97A3A" stroke-width="1.5" stroke-linecap="round" opacity=".8"><path d="M40 50 h-14 M40 54 l-13 3"/><path d="M80 50 h14 M80 54 l13 3"/></g>
+  </g>
+</svg>
