@@ -1,0 +1,1115 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Sobres</title>
+<meta name="theme-color" content="#16201C">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sobres">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icono-192.png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="config.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:ital,wght@0,400..700&display=swap" rel="stylesheet">
+
+</head>
+<body>
+<style>
+  :root {
+    --paper: #EDEFEA; --surface: #FFFFFF; --ink: #16201C; --muted: #737E78;
+    --line: #D9DED7; --press: #E2E6DF; --ok: #0F6B3F; --bad: #B8332A;
+    --t-fijo: #4B6A8F; --t-deuda: #B84A3C; --t-variable: #D18B2C; --t-ahorro: #1E8A78;
+    --gato: #E8A05A; --gato2: #F6D9B4; --gato3: #C97A3A;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  html, body { overflow-x: clip; max-width: 100%; }
+  body { font-family: 'Instrument Sans', system-ui, sans-serif; background: var(--paper); color: var(--ink); font-size: 15px; line-height: 1.4; }
+  img, svg { max-width: 100%; }
+  button { font: inherit; cursor: pointer; border: 0; background: none; color: inherit; }
+  input, select, textarea { font: inherit; }
+  .num { font-variant-numeric: tabular-nums; }
+
+  /* ── cabecera ─────────────────────────────── */
+  .cab { position: sticky; top: 0; z-index: 10; background: var(--paper); display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 10px 16px; border-bottom: 1px solid var(--line); }
+  @media (max-width: 559px) { .cab .tabs { flex: 1 1 100%; } .cab .tab { flex: 1; text-align: center; } }
+  .cab h1 { font-size: 15px; font-weight: 600; }
+  .cab h1 span { color: var(--muted); font-weight: 400; }
+  .mini { font-size: 14px; font-weight: 600; margin-left: auto; margin-right: 6px; }
+  .mini.neg { color: var(--bad); } .mini.cero { color: var(--ok); }
+  @media (min-width: 820px) { .mini { display: none; } .cab { gap: 16px; } .cab .tabs { margin-left: auto; } }
+  .tabs { display: flex; gap: 2px; background: var(--line); padding: 2px; border-radius: 9px; }
+  .tab { font-size: 13px; color: var(--muted); padding: 5px 11px; border-radius: 7px; transition: background .15s; }
+  .tab[aria-selected="true"] { background: var(--surface); color: var(--ink); font-weight: 600; }
+
+  .vista { display: none; max-width: 1080px; margin: 0 auto; padding: 16px; }
+  .vista.activa { display: block; animation: entrar .28s cubic-bezier(.2,.8,.3,1); }
+  @keyframes entrar { from { opacity: 0; transform: translateY(8px); } }
+
+  /* ── gato ─────────────────────────────────── */
+  .gato { display: inline-block; overflow: visible; }
+  .gato .cola { transform-origin: 96px 74px; animation: cola 2.4s ease-in-out infinite; }
+  .gato .cuerpo { transform-origin: 60px 80px; }
+  .gato .ojos ellipse { transform-box: fill-box; transform-origin: center; animation: parpadeo 4.5s infinite; }
+  .gato .ojos-feliz, .gato .ojos-cerrados, .gato .zz { display: none; }
+  .gato.feliz .ojos, .gato.dormido .ojos { display: none; }
+  .gato.feliz .ojos-feliz { display: block; }
+  .gato.feliz .cuerpo { animation: brinco .7s cubic-bezier(.3,1.6,.5,1) 2; }
+  .gato.feliz .cola { animation: cola .5s ease-in-out infinite; }
+  .gato.dormido .ojos-cerrados, .gato.dormido .zz { display: block; }
+  .gato.dormido .cuerpo { animation: respira 3s ease-in-out infinite; }
+  .gato.dormido .cola { animation: none; }
+  .gato .zz text { animation: flotar 2.2s ease-in-out infinite; }
+  .gato .zz text:nth-child(2) { animation-delay: .7s; }
+  .gato.alerta .oreja { transform-box: fill-box; transform-origin: 50% 100%; animation: orejas .5s ease-out both; }
+  .gato.alerta .ojos ellipse { rx: 5.5; ry: 6.5; animation: none; }
+  .gato.alerta .cuerpo { animation: sacudir .45s ease-in-out both; }
+  .gato.alerta .cola { animation: cola .3s ease-in-out infinite; }
+  @keyframes cola { 0%,100% { transform: rotate(-8deg); } 50% { transform: rotate(14deg); } }
+  @keyframes parpadeo { 0%,92%,100% { transform: scaleY(1); } 95% { transform: scaleY(.1); } }
+  @keyframes brinco { 0%,100% { transform: translateY(0); } 45% { transform: translateY(-14px) scaleX(.94) scaleY(1.06); } }
+  @keyframes respira { 0%,100% { transform: scaleY(1); } 50% { transform: scaleY(1.04) scaleX(1.02); } }
+  @keyframes flotar { 0% { opacity: 0; transform: translate(0,0); } 30% { opacity: 1; } 100% { opacity: 0; transform: translate(6px,-16px); } }
+  @keyframes orejas { to { transform: rotate(var(--r)); } }
+  @keyframes sacudir { 0%,100% { transform: translateX(0); } 25% { transform: translateX(-4px) rotate(-2deg); } 75% { transform: translateX(4px) rotate(2deg); } }
+
+  .globo { position: relative; min-width: 0; overflow-wrap: anywhere; background: var(--surface); color: var(--ink); border-radius: 12px; padding: 8px 11px; font-size: 13px; line-height: 1.3; box-shadow: 0 1px 0 var(--line); animation: globo .25s cubic-bezier(.2,.8,.3,1); max-width: 220px; }
+  .globo::after { content: ''; position: absolute; right: -6px; top: 50%; margin-top: -6px; border: 6px solid transparent; border-left-color: var(--surface); border-right: 0; }
+  .globo.abajo::after { right: auto; left: 50%; top: auto; bottom: -6px; margin: 0 0 0 -6px; border: 6px solid transparent; border-top-color: var(--surface); border-bottom: 0; }
+  @keyframes globo { from { opacity: 0; transform: scale(.85); } }
+  .bolsa .globo { background: #2A3531; color: var(--paper); box-shadow: none; }
+  .bolsa .globo::after { border-left-color: #2A3531; }
+
+  /* ── registro rápido ──────────────────────── */
+  .captura { max-width: 430px; margin: 0 auto; display: flex; flex-direction: column; min-height: calc(100vh - 120px); }
+  .lectura { padding: 18px 4px 14px; }
+  .montoG { text-align: right; font-size: clamp(42px, 14vw, 58px); font-weight: 600; letter-spacing: -.03em; line-height: 1; transition: transform .1s; }
+  .montoG.vacio { color: #C3C9C0; }
+  .montoG.pulso { animation: pulso .18s ease-out; }
+  @keyframes pulso { 50% { transform: scale(1.04); } }
+  .frecuentes { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; padding-bottom: 12px; }
+  .frecuentes::-webkit-scrollbar { display: none; } .frecuentes:empty { display: none; }
+  .frec { flex-shrink: 0; background: var(--surface); border-left: 3px solid var(--t-variable); border-radius: 4px 10px 10px 4px; padding: 8px 12px; text-align: left; box-shadow: 0 1px 0 var(--line); transition: transform .1s; }
+  .frec:active { transform: scale(.95); }
+  .frec span { display: block; font-size: 11px; color: var(--muted); } .frec b { font-size: 15px; font-weight: 600; }
+  .cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; padding-bottom: 10px; }
+  .cat { background: var(--surface); border-radius: 12px; padding: 10px 8px 9px; display: grid; gap: 3px; text-align: left; box-shadow: inset 0 0 0 1px var(--line); border-left: 4px solid var(--t-variable); transition: transform .12s, box-shadow .12s; }
+  .cat:active { transform: scale(.94); } .cat[disabled] { opacity: .38; cursor: default; }
+  .cat.recibe { animation: recibe .5s cubic-bezier(.3,1.5,.5,1); }
+  @keyframes recibe { 40% { transform: scale(1.08); box-shadow: inset 0 0 0 2px var(--t-variable); } }
+  .cat .nom { font-size: 13px; font-weight: 600; } .cat .queda { font-size: 11.5px; color: var(--muted); }
+  .cat .queda.neg { color: var(--bad); font-weight: 600; }
+  .teclado { margin-top: auto; display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; padding-bottom: 8px; }
+  .tecla { background: var(--surface); border-radius: 13px; height: 58px; font-size: 25px; font-weight: 500; font-variant-numeric: tabular-nums; box-shadow: 0 1px 0 rgba(0,0,0,.05); transition: transform .08s; }
+  .tecla:active { background: var(--press); transform: scale(.96); } .tecla.aux { font-size: 19px; color: var(--muted); }
+  .pie { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; padding: 6px 2px 0; }
+  .hoy { min-width: 0; display: flex; gap: 8px 12px; font-size: 12.5px; color: var(--muted); flex-wrap: wrap; }
+  .hoy b { color: var(--ink); font-weight: 600; }
+  .verMovs { flex-basis: 100%; text-align: left; font-size: 12.5px; color: var(--ok); font-weight: 600; padding: 2px 0; }
+  .movs { flex: 1; overflow-y: auto; padding: 4px 18px 24px; }
+  .movs .dia { font-size: 12px; color: var(--muted); padding: 14px 0 4px; }
+  .mov { display: grid; grid-template-columns: 1fr 112px 32px; gap: 8px; align-items: center; padding: 7px 0; border-bottom: 1px solid var(--line); }
+  .mov select, .mov input { width: 100%; border: 0; background: var(--surface); border-radius: 8px; padding: 8px 10px; box-shadow: inset 0 0 0 1px var(--line); font-size: 14px; }
+  .mov input { text-align: right; font-weight: 600; }
+  .mov .x { width: 32px; height: 32px; border-radius: 8px; color: var(--muted); font-size: 18px; }
+  .mov .x:hover { background: #F6DEDC; color: var(--bad); }
+  .mov .hora { font-size: 11px; color: var(--muted); grid-column: 1 / -1; margin-top: -4px; }
+  .gatoPie { display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; }
+  .vuela { position: fixed; z-index: 60; pointer-events: none; font-weight: 600; font-size: 40px; letter-spacing: -.03em; color: var(--ink); }
+  .undo { position: fixed; left: 50%; transform: translateX(-50%) translateY(140%); bottom: 20px; width: min(400px, calc(100% - 28px)); background: var(--ink); color: var(--paper); border-radius: 13px; padding: 12px 14px; display: flex; align-items: center; justify-content: space-between; gap: 12px; transition: transform .22s cubic-bezier(.2,.8,.3,1); z-index: 45; }
+  .undo.on { transform: translateX(-50%) translateY(0); }
+  .undo p span { color: #9AA69E; } .undo button { font-weight: 600; color: #7FD4A4; padding: 4px; }
+
+  /* ── reparto ──────────────────────────────── */
+  .reparto { display: grid; gap: 16px; }
+  @media (min-width: 820px) { .reparto { grid-template-columns: 330px 1fr; align-items: start; } .bolsa { position: sticky; top: 64px; } }
+  .bolsa { background: var(--ink); color: var(--paper); border-radius: 16px; padding: 18px; }
+  .bolsa .cima { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .bolsa .cima > div:first-child { min-width: 0; }
+  .bolsa .et { font-size: 13px; color: #9AA69E; }
+  .bolsa .grande { font-size: clamp(34px, 8.5vw, 44px); font-weight: 600; letter-spacing: -.03em; line-height: 1.1; margin: 2px 0 10px; transition: color .3s; }
+  .bolsa .grande.neg { color: #F0857A; } .bolsa .grande.cero { color: #7FD4A4; }
+  .bolsa .mascota { display: flex; align-items: center; gap: 8px; }
+  .bolsa .mascota .gato { cursor: pointer; }
+  .seg { display: flex; height: 8px; border-radius: 4px; overflow: hidden; background: #2A3531; margin-bottom: 14px; }
+  .seg i { display: block; transition: width .35s cubic-bezier(.2,.8,.3,1); }
+  .ingresos { border-top: 1px solid #2A3531; padding-top: 12px; display: grid; gap: 6px; }
+  .ing { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+  .ing button { color: var(--paper); padding: 2px 6px; border-radius: 6px; } .ing button.q { color: #9AA69E; }
+  .ing button:hover { background: #2A3531; }
+  .ing input, .bolsa input { background: #2A3531; color: var(--paper); border: 0; border-radius: 6px; padding: 3px 8px; }
+  .ing input.m { width: 120px; text-align: right; }
+  .masIng { font-size: 12.5px; color: #9AA69E; text-align: left; padding: 2px 6px; }
+  .bolsa .total { display: flex; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid #2A3531; font-weight: 600; }
+  .acciones { display: grid; gap: 8px; margin-top: 14px; }
+  .respaldo { display: flex; justify-content: space-between; gap: 8px; padding-top: 4px; }
+  .respaldo button, .respaldo label { font-size: 12.5px; color: #9AA69E; cursor: pointer; padding: 4px 0; }
+  .respaldo button:hover, .respaldo label:hover { color: var(--paper); }
+  .btn { padding: 11px 14px; border-radius: 11px; font-weight: 600; font-size: 14px; text-align: center; transition: transform .08s, opacity .2s; }
+  .btn:active { transform: scale(.98); }
+  .btn.p { background: #7FD4A4; color: var(--ink); } .btn.s { background: #2A3531; color: var(--paper); }
+  .btn.g { background: var(--surface); color: var(--ink); box-shadow: inset 0 0 0 1px var(--line); }
+  .btn.r { color: var(--bad); }
+  .btn[disabled] { opacity: .35; cursor: default; }
+
+  .grupo { margin-bottom: 18px; }
+  .grupo h2 { font-size: 13px; font-weight: 600; color: var(--muted); padding: 4px 2px 8px; display: flex; flex-wrap: wrap; gap: 4px 10px; justify-content: space-between; align-items: center; }
+  .grupo h2 b { color: var(--ink); font-weight: 600; }
+  .grupo h2 .tipoDesc { font-weight: 400; margin-left: 6px; }
+  .sobres { display: grid; gap: 8px; }
+  @media (min-width: 560px) { .sobres { grid-template-columns: 1fr 1fr; } }
+  .sobre { min-width: 0; background: var(--surface); border-radius: 13px; padding: 12px 14px; border-left: 4px solid var(--tc); box-shadow: 0 1px 0 var(--line); display: grid; gap: 8px; transition: opacity .25s; }
+  .sobre.pagado { opacity: .55; }
+  .sobre.tiembla { animation: sacudir .4s ease-in-out; }
+  .sobre .top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .sobre .top > div { min-width: 0; }
+  .sobre .nom { font-weight: 600; font-size: 15px; text-align: left; padding: 0; border-bottom: 1.5px dashed transparent; transition: border-color .15s; }
+  .sobre .nom:hover { border-color: var(--line); }
+  .sobre .para { font-size: 12px; color: var(--muted); margin-top: 1px; }
+  .sobre .ref { font-size: 12px; color: var(--muted); text-align: right; flex-shrink: 0; max-width: 46%; }
+  .barra { height: 6px; border-radius: 3px; background: var(--paper); overflow: hidden; }
+  .barra i { display: block; height: 100%; background: var(--tc); border-radius: 3px; transition: width .35s cubic-bezier(.2,.8,.3,1), background .3s; }
+  .barra i.over { background: var(--bad); }
+  .barra.fina { height: 4px; }
+  .ctrl { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+  .ctrl > .ref { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .step { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+  .step button[data-step] { flex-shrink: 0; width: 36px; height: 36px; border-radius: 9px; background: var(--paper); font-size: 20px; color: var(--muted); user-select: none; transition: transform .08s; }
+  .step button[data-step]:active { background: var(--press); color: var(--ink); transform: scale(.9); }
+  .monto { flex-shrink: 0; font-size: 17px; font-weight: 600; min-width: 96px; white-space: nowrap; text-align: center; padding: 4px 6px; border-radius: 8px; }
+  .monto:hover { background: var(--paper); }
+  .monto input { width: 110px; text-align: center; border: 0; background: var(--paper); border-radius: 8px; padding: 4px; font-size: 18px; font-weight: 600; }
+  .chk { display: flex; align-items: center; gap: 6px; font-size: 13px; padding: 7px 11px; border-radius: 9px; background: var(--paper); color: var(--muted); transition: background .2s, color .2s; }
+  .chk.on { background: var(--ok); color: #fff; }
+  .chk i { width: 14px; height: 14px; border-radius: 4px; border: 1.5px solid currentColor; display: grid; place-items: center; font-size: 10px; font-style: normal; }
+  .chk.on i { animation: pop .35s cubic-bezier(.3,1.6,.5,1); }
+  @keyframes pop { 50% { transform: scale(1.5); } }
+  .sub2 { display: flex; justify-content: space-between; font-size: 12px; color: var(--muted); }
+  .sub2 b { color: var(--ink); font-weight: 600; } .sub2 b.neg { color: var(--bad); }
+  .otra { margin-top: 8px; }
+  .otra summary { font-size: 12.5px; color: var(--muted); cursor: pointer; padding: 6px 2px; list-style: none; }
+  .otra summary::before { content: '▸ '; } .otra[open] summary::before { content: '▾ '; }
+  .otraFila { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 8px 12px; margin-top: 6px; background: var(--surface); border-radius: 10px; border-left: 4px solid var(--tc); opacity: .7; box-shadow: 0 1px 0 var(--line); }
+  .otraFila .nom { font-weight: 600; font-size: 14px; text-align: left; border-bottom: 1.5px dashed var(--line); }
+  .otraFila span { font-size: 12px; color: var(--muted); white-space: nowrap; }
+  .nuevo { background: transparent; border: 1.5px dashed var(--line); border-radius: 13px; padding: 14px; color: var(--muted); font-size: 14px; text-align: center; transition: border-color .15s, color .15s; }
+  .nuevo:hover { border-color: var(--muted); color: var(--ink); }
+
+  /* ── dashboard ────────────────────────────── */
+  .dash { display: grid; gap: 14px; }
+  @media (min-width: 820px) { .dash { grid-template-columns: 1fr 1fr; } .dash .ancho { grid-column: 1 / -1; } }
+  .card { background: var(--surface); border-radius: 16px; padding: 16px; box-shadow: 0 1px 0 var(--line); }
+  .card h2 { font-size: 15px; font-weight: 600; margin-bottom: 4px; }
+  .card .sub { font-size: 13px; color: var(--muted); margin-bottom: 12px; }
+  .card .cabG { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+  .kpis { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  .kpi { background: var(--paper); border-radius: 11px; padding: 10px 12px; }
+  .kpi span { font-size: 12px; color: var(--muted); display: block; } .kpi b { font-size: 17px; font-weight: 600; overflow-wrap: anywhere; }
+  .hbar { display: grid; grid-template-columns: 96px 1fr 64px; align-items: center; gap: 10px; padding: 5px 0; font-size: 13.5px; }
+  .hbar .n { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .hbar .b { height: 14px; background: var(--paper); border-radius: 4px; overflow: hidden; position: relative; }
+  .hbar .b i { display: block; height: 100%; border-radius: 4px; transition: width .5s cubic-bezier(.2,.8,.3,1); }
+  .hbar .v { text-align: right; color: var(--muted); }
+  .ahorro { padding: 8px 0; border-bottom: 1px solid var(--line); } .ahorro:last-child { border: 0; }
+  .ahorro .l1 { display: flex; justify-content: space-between; font-size: 14px; margin-bottom: 5px; } .ahorro .l1 b { font-weight: 600; }
+  .ahorro .l2 { font-size: 12px; color: var(--muted); margin-top: 5px; } .ahorro .barra { height: 10px; }
+  .estrat { display: flex; gap: 2px; background: var(--paper); padding: 2px; border-radius: 9px; margin: 8px 0 12px; }
+  .estrat button { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.2; padding: 7px 4px; border-radius: 7px; color: var(--muted); transition: background .15s; }
+  .estrat button[aria-pressed="true"] { background: var(--surface); color: var(--ink); font-weight: 600; box-shadow: 0 1px 0 var(--line); }
+  .slider { display: grid; gap: 4px; margin-bottom: 12px; }
+  .slider label { display: flex; justify-content: space-between; font-size: 13px; color: var(--muted); } .slider label b { color: var(--ink); font-size: 15px; }
+  input[type=range] { width: 100%; accent-color: var(--t-deuda); height: 28px; }
+  .res { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .res .kpi b { font-size: 15px; overflow-wrap: anywhere; } .res .kpi em { font-style: normal; font-size: 12px; color: var(--ok); display: block; }
+  .nota { font-size: 12.5px; color: var(--muted); background: var(--paper); border-radius: 9px; padding: 9px 11px; }
+  svg:not(.gato) { display: block; width: 100%; height: auto; }
+  .ley { display: flex; flex-wrap: wrap; gap: 10px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+  .ley i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; vertical-align: -1px; margin-right: 4px; }
+
+  /* ── editor de sobres (hoja inferior) ─────── */
+  .velo { position: fixed; inset: 0; background: rgba(22,32,28,.45); opacity: 0; pointer-events: none; transition: opacity .25s; z-index: 30; }
+  .velo.on { opacity: 1; pointer-events: auto; }
+  .hoja { position: fixed; left: 0; right: 0; bottom: 0; z-index: 31; background: var(--paper); border-radius: 18px 18px 0 0; max-height: 92vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform .3s cubic-bezier(.2,.8,.3,1); max-width: 560px; margin: 0 auto; }
+  .hoja.on { transform: translateY(0); }
+  .hoja header { padding: 14px 18px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); }
+  .hoja h2 { font-size: 17px; font-weight: 600; }
+  .hoja header button { font-size: 15px; color: var(--muted); padding: 4px 8px; }
+  .edBody { flex: 1; overflow-y: auto; padding: 14px 18px; display: grid; gap: 14px; }
+  .campo { display: grid; gap: 5px; }
+  .campo label { font-size: 12.5px; color: var(--muted); }
+  .campo input, .campo textarea { width: 100%; border: 0; background: var(--surface); border-radius: 10px; padding: 11px 12px; box-shadow: inset 0 0 0 1px var(--line); }
+  .campo input:focus, .campo textarea:focus { outline: 2px solid var(--ok); }
+  .campo textarea { resize: none; height: 64px; }
+  .campo .dos { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tipos { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; }
+  .tipoB { background: var(--surface); border-radius: 11px; padding: 10px 11px; text-align: left; box-shadow: inset 0 0 0 1px var(--line); border-left: 4px solid var(--tc); display: grid; gap: 2px; transition: box-shadow .15s; }
+  .tipoB[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--tc); }
+  .tipoB b { font-size: 14px; font-weight: 600; } .tipoB span { font-size: 11.5px; color: var(--muted); line-height: 1.25; }
+  .edFoot { padding: 12px 18px calc(12px + env(safe-area-inset-bottom)); display: flex; gap: 8px; border-top: 1px solid var(--line); }
+  .edFoot .btn { flex: 1; }
+
+  .aviso { display: none; max-width: 1080px; margin: 12px auto 0; padding: 0 16px; }
+  .aviso.on { display: block; }
+  .aviso div { background: #FBE9C7; color: #5A3A00; border-radius: 12px; padding: 11px 14px; font-size: 13.5px; line-height: 1.45; }
+  .aviso code { font-family: ui-monospace, Menlo, monospace; font-size: 12.5px; background: rgba(0,0,0,.07); padding: 1px 5px; border-radius: 4px; overflow-wrap: anywhere; }
+  .aviso b { display: block; margin-bottom: 3px; }
+  .estado { font-size: 12px; color: var(--muted); }
+  .estado.mal { color: var(--bad); font-weight: 600; }
+  /* ── acceso ── */
+  .acceso { position: fixed; inset: 0; z-index: 70; background: var(--paper); display: none; align-items: center; justify-content: center; padding: 24px; }
+  .acceso.on { display: flex; }
+  .acceso form { width: min(380px, 100%); background: var(--surface); border-radius: 18px; padding: 24px 22px; box-shadow: 0 1px 0 var(--line); display: grid; gap: 12px; }
+  .acceso .cabA { display: flex; align-items: center; gap: 12px; margin-bottom: 4px; }
+  .acceso h2 { font-size: 20px; font-weight: 600; }
+  .acceso p { font-size: 13.5px; color: var(--muted); }
+  .acceso .err { font-size: 13px; color: var(--bad); min-height: 1.2em; }
+  .acceso .dosB { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .acceso .btn.g { color: var(--ink); }
+  canvas.confeti { position: fixed; inset: 0; pointer-events: none; z-index: 50; }
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%) translateY(140%); background: var(--ink); color: var(--paper); padding: 11px 16px; border-radius: 12px; font-size: 14px; transition: transform .22s; z-index: 40; white-space: nowrap; max-width: calc(100% - 28px); overflow: hidden; text-overflow: ellipsis; }
+  .toast.on { transform: translateX(-50%) translateY(0); }
+
+  @media (prefers-reduced-motion: reduce) { *, *::before, *::after { transition: none !important; animation: none !important; } }
+  :focus-visible { outline: 2px solid var(--ok); outline-offset: 2px; }
+</style>
+
+<header class="cab">
+  <h1 id="titulo">Quincena <span></span></h1>
+  <b class="mini num" id="libreMini"></b>
+  <div class="tabs" role="tablist">
+    <button class="tab" role="tab" data-v="registro" aria-selected="true">Registrar</button>
+    <button class="tab" role="tab" data-v="reparto" aria-selected="false">Reparto</button>
+    <button class="tab" role="tab" data-v="dash" aria-selected="false">Dashboard</button>
+  </div>
+</header>
+
+<div class="aviso" id="aviso"></div>
+
+<section class="vista activa" id="v-registro">
+  <div class="captura">
+    <div class="lectura"><div class="montoG num vacio" id="montoG">0</div></div>
+    <div class="frecuentes" id="frecuentes"></div>
+    <div class="cats" id="cats"></div>
+    <div class="teclado" id="teclado">
+      <button class="tecla" data-k="1">1</button><button class="tecla" data-k="2">2</button><button class="tecla" data-k="3">3</button>
+      <button class="tecla" data-k="4">4</button><button class="tecla" data-k="5">5</button><button class="tecla" data-k="6">6</button>
+      <button class="tecla" data-k="7">7</button><button class="tecla" data-k="8">8</button><button class="tecla" data-k="9">9</button>
+      <button class="tecla aux" data-k="000">000</button><button class="tecla" data-k="0">0</button><button class="tecla aux" data-k="del">⌫</button>
+    </div>
+    <div class="pie"><div class="hoy" id="hoy"></div><div class="gatoPie" id="gatoPie"></div></div>
+  </div>
+</section>
+
+<section class="vista" id="v-reparto">
+  <div class="reparto">
+    <aside class="bolsa">
+      <div class="cima">
+        <div><div class="et">Sin asignar</div><div class="grande num" id="libre">₡0</div></div>
+        <div class="mascota" id="mascota"></div>
+      </div>
+      <div class="seg" id="seg"></div>
+      <div class="ingresos" id="ingresos"></div>
+      <div class="total"><span>Entró</span><span class="num" id="entro"></span></div>
+      <div class="acciones">
+        <button class="btn p" id="btnSobrante">Sobrante → ahorro</button>
+        <button class="btn s" id="btnCerrar">Cerrar quincena</button>
+        <div class="estado" id="estadoGuardado"></div>
+        <div class="respaldo"><button id="btnInstalar" hidden>Instalar app</button><button id="btnExportar">Descargar respaldo</button><button id="btnSalir">Salir</button><label for="inpImportar">Restaurar respaldo</label><input type="file" id="inpImportar" accept="application/json,.json" hidden></div>
+      </div>
+    </aside>
+    <div id="grupos"></div>
+  </div>
+</section>
+
+<section class="vista" id="v-dash"><div class="dash" id="dash"></div></section>
+
+<div class="undo" id="undo"><p class="num" id="undoTxt"></p><button id="btnUndo">Deshacer</button></div>
+<div class="velo" id="velo"></div>
+<div class="hoja" id="hojaMovs">
+  <header><h2>Movimientos de la quincena</h2><button id="movsCerrar">Cerrar</button></header>
+  <div class="movs" id="listaMovs"></div>
+</div>
+<div class="hoja" id="editor">
+  <header><h2 id="edTitulo">Nuevo sobre</h2><button id="edCerrar">Cerrar</button></header>
+  <div class="edBody" id="edBody"></div>
+  <div class="edFoot"><button class="btn g r" id="edArchivar">Archivar</button><button class="btn p" id="edGuardar">Guardar sobre</button></div>
+</div>
+<div class="acceso" id="acceso">
+  <form id="formAcceso">
+    <div class="cabA" id="accCab"></div>
+    <div class="campo"><label for="accEmail">Correo</label><input id="accEmail" type="email" autocomplete="email" required inputmode="email"></div>
+    <div class="campo"><label for="accPass">Contraseña</label><input id="accPass" type="password" autocomplete="current-password" required minlength="6"></div>
+    <div class="err" id="accErr"></div>
+    <div class="dosB"><button type="button" class="btn g" id="accCrear">Crear cuenta</button><button type="submit" class="btn p" id="accEntrar">Entrar</button></div>
+  </form>
+</div>
+<canvas class="confeti" id="confeti"></canvas>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   ESTADO — espeja el esquema de Supabase
+   ═══════════════════════════════════════════════ */
+const TIPO = {
+  fijo:     { nom: 'Fijos',     color: 'var(--t-fijo)',     desc: 'Un pago que ya sabés cuánto es' },
+  deuda:    { nom: 'Deudas',    color: 'var(--t-deuda)',    desc: 'Algo que estás pagando a plazos' },
+  variable: { nom: 'Variables', color: 'var(--t-variable)', desc: 'Gasto del día a día, cambia cada quincena' },
+  ahorro:   { nom: 'Ahorros',   color: 'var(--t-ahorro)',   desc: 'Plata apartada para una meta' },
+};
+
+const semilla = () => ({
+  periodo: { inicio: '2026-09-15', n: 5 },
+  gato: 'Michi',
+  ingresos: [ { quien: 'Andrés', monto: 720000 }, { quien: 'Pareja', monto: 480000 } ],
+  sobres: [
+    { id: 's1', nom: 'Alquiler',  tipo: 'fijo', para: 'Se paga el 1 de cada mes', esperado: 350000, diaCorte: 1, cuando: 'q1', activo: true },
+    { id: 's2', nom: 'Luz',       tipo: 'fijo', para: '', esperado: 22000, diaCorte: 20, activo: true },
+    { id: 's3', nom: 'Agua',      tipo: 'fijo', para: '', esperado: 9000, diaCorte: 20, activo: true },
+    { id: 's4', nom: 'Internet',  tipo: 'fijo', para: '', esperado: 18000, diaCorte: 5, activo: true },
+    { id: 's5', nom: 'Celulares', tipo: 'fijo', para: 'Los dos planes', esperado: 24000, diaCorte: 10, activo: true },
+    { id: 'd1', nom: 'Tarjeta BAC',       tipo: 'deuda', para: 'Pagarla antes de fin de año', acreedor: 'BAC', saldo: 850000,  tasa: 38, cuota: 45000, activo: true },
+    { id: 'd2', nom: 'Préstamo moto',     tipo: 'deuda', para: '', acreedor: 'Banco', saldo: 1900000, tasa: 14, cuota: 65000, activo: true },
+    { id: 'd3', nom: 'Préstamo personal', tipo: 'deuda', para: '', acreedor: 'Coope', saldo: 420000,  tasa: 22, cuota: 30000, activo: true },
+    { id: 'v1', nom: 'Comida',   tipo: 'variable', para: 'Súper y comidas fuera', hist: [140000, 155000, 150000, 162000], activo: true },
+    { id: 'v2', nom: 'Gasolina', tipo: 'variable', para: '', hist: [38000, 42000, 40000, 45000], activo: true },
+    { id: 'v3', nom: 'Varios',   tipo: 'variable', para: 'Lo que no cabe en otro sobre', hist: [60000, 75000, 55000, 80000], activo: true },
+    { id: 'a1', nom: 'Fondo de emergencia', tipo: 'ahorro', para: 'Tres meses de gastos fijos', meta: 1500000, acum: 620000, histA: [90000, 110000, 100000, 120000], activo: true },
+    { id: 'a2', nom: 'Viaje',    tipo: 'ahorro', para: 'Diciembre, playa', meta: 600000, acum: 150000, histA: [30000, 40000, 40000, 40000], activo: true },
+  ],
+  asig: {}, pagado: {}, movs: [], extra: 0, estrategia: 'nieve', celebrado: false,
+});
+
+let S = semilla();
+let vista = 'registro';
+let digitos = '', ultimoMov = null, undoT = null;
+let gatoPieEstado = 'neutro', gatoPieT = null, gatoBolsaT = null, gatoBolsaForzado = null;
+
+const $ = id => document.getElementById(id);
+const fmt = n => { const r = Math.round(n); return (r < 0 ? '-₡' : '₡') + String(Math.abs(r)).replace(/\B(?=(\d{3})+(?!\d))/g, '.'); };
+const fmtK = n => n >= 1e6 ? '₡' + (n/1e6).toFixed(1).replace('.0','') + 'M' : '₡' + Math.round(n/1000) + 'k';
+const mediana = a => { if (!a.length) return 0; const s = [...a].sort((x,y)=>x-y); const m = s.length >> 1; return s.length % 2 ? s[m] : (s[m-1]+s[m])/2; };
+const p80 = a => { if (!a.length) return 0; const s = [...a].sort((x,y)=>x-y); return s[Math.min(s.length-1, Math.floor(s.length*.8))]; };
+const MESES = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+/* Quincenas reales: la del 1 (1→14) y la del 15 (15→fin de mes). */
+const inicioQ = () => new Date(S.periodo.inicio + 'T12:00:00');
+function avanzarQ(d) { const x = new Date(d); if (x.getDate() >= 15) { x.setDate(1); x.setMonth(x.getMonth() + 1); } else x.setDate(15); return x; }
+function qInfo(n) { let d = inicioQ(); for (let i = 0; i < n; i++) d = avanzarQ(d); return { d, tipo: d.getDate() >= 15 ? 'q15' : 'q1' }; }
+const tipoQ = () => qInfo(0).tipo;
+const fechaQ = q => { const { d } = qInfo(q); return MESES[d.getMonth()] + ' ' + d.getFullYear(); };
+const etiqQ = q => { const { d, tipo } = qInfo(q); return `${tipo === 'q1' ? '1' : '15'} ${MESES[d.getMonth()]}`; };
+const largoQ = () => Math.round((qInfo(1).d - inicioQ()) / 864e5);
+const CUANDO = { q1: 'Quincena del 1', q15: 'Quincena del 15', ambas: 'Ambas' };
+const cuandoDe = s => s.cuando || (s.tipo === 'fijo' && s.diaCorte ? (s.diaCorte < 15 ? 'q1' : 'q15') : 'ambas');
+const aplica = (s, tq = tipoQ()) => (s.tipo === 'variable' || s.tipo === 'ahorro') ? true : (cuandoDe(s) === 'ambas' || cuandoDe(s) === tq);
+const activos = () => S.sobres.filter(s => s.activo !== false);
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;' }[c]));
+
+/* ── persistencia ── */
+const CLAVE = 'sobres:estado';
+const enArtefacto = typeof window.storage?.get === 'function';
+
+/* ═══ Supabase: local primero, nube cuando hay sesión y conexión ═══ */
+const CFG = window.SOBRES_CONFIG || {};
+const conNube = !!(window.supabase && CFG.url && CFG.anonKey && !CFG.url.includes('TU-PROYECTO') && !CFG.anonKey.includes('TU-ANON'));
+const sb = conNube ? window.supabase.createClient(CFG.url, CFG.anonKey) : null;
+let sesion = null, pendiente = false, syncT = null, estadoNube = 'sin configurar';
+
+function pintarNube(txt, mal) { const el = $('estadoGuardado'); if (el) { el.textContent = txt; el.className = 'estado' + (mal ? ' mal' : ''); } }
+
+async function subir() {
+  if (!sb || !sesion) return;
+  clearTimeout(syncT);
+  syncT = setTimeout(async () => {
+    const { error } = await sb.from('estado').upsert({ user_id: sesion.user.id, datos: S, actualizado_en: new Date(S.actualizado).toISOString() });
+    if (error) { pendiente = true; pintarNube('Guardado en el teléfono · sin conexión, se sube luego', true); }
+    else { pendiente = false; pintarNube('Sincronizado con la nube ✓'); }
+  }, 700);
+}
+
+async function bajar() {
+  if (!sb || !sesion) return null;
+  const { data, error } = await sb.from('estado').select('datos').eq('user_id', sesion.user.id).maybeSingle();
+  if (error) { pintarNube('No se pudo leer la nube · usando lo local', true); return null; }
+  return data?.datos || null;
+}
+
+async function entrar(crear) {
+  const email = $('accEmail').value.trim(), pass = $('accPass').value;
+  $('accErr').textContent = '';
+  const r = crear ? await sb.auth.signUp({ email, password: pass }) : await sb.auth.signInWithPassword({ email, password: pass });
+  if (r.error) { $('accErr').textContent = traducirError(r.error.message); return; }
+  if (crear && !r.data.session) { $('accErr').textContent = 'Cuenta creada. Revisá tu correo para confirmarla y después tocá Entrar.'; return; }
+  sesion = r.data.session; $('acceso').classList.remove('on');
+  await cargar();
+}
+const traducirError = m => /invalid login/i.test(m) ? 'Correo o contraseña incorrectos' : /already registered/i.test(m) ? 'Ese correo ya tiene cuenta, tocá Entrar' : /password/i.test(m) ? 'La contraseña necesita al menos 6 caracteres' : m;
+
+async function iniciarNube() {
+  if (!sb) {
+    pintarNube('Sin nube · modo solo navegador', true);
+    if (!enArtefacto) { const av = $('aviso'); av.classList.add('on'); av.innerHTML = `<div><b>La app está en modo solo navegador.</b> No pudo cargar Supabase ${!window.supabase ? '(sin conexión al CDN)' : '(config.js no se cargó)'}. Así no pide cuenta y no guarda en la nube. Abrila desde su dirección publicada en GitHub Pages, con todos los archivos de la carpeta juntos.</div>`; }
+    return;
+  }
+  const { data } = await sb.auth.getSession(); sesion = data.session;
+  $('accCab').innerHTML = `${gato('neutro', 52)}<div><h2>Sobres</h2><p>Entrá para que tus datos te sigan a cualquier dispositivo.</p></div>`;
+  if (!sesion) $('acceso').classList.add('on');
+  sb.auth.onAuthStateChange((ev, s) => { sesion = s; if (ev === 'SIGNED_OUT') location.reload(); });
+  addEventListener('online', () => { if (pendiente) subir(); });
+}
+
+/* ¿Este origen guarda de verdad? content:// en Android suele no persistir. */
+let guardadoOK = true;
+function probarGuardado() {
+  if (enArtefacto) return true;
+  try { localStorage.setItem('sobres:test', '1'); const ok = localStorage.getItem('sobres:test') === '1'; localStorage.removeItem('sobres:test'); return ok; }
+  catch { return false; }
+}
+function avisarGuardado() {
+  const av = $('aviso'), est = $('estadoGuardado');
+  const proto = location.protocol;
+  if (guardadoOK && proto !== 'content:') {
+    av.classList.remove('on');
+    if (sesion) { pintarNube(pendiente ? 'Guardado en el teléfono · pendiente de subir' : 'Sincronizado con la nube ✓', pendiente); return; }
+    est.textContent = sb ? 'Sin sesión · guardando solo en este navegador' : 'Guardando en este navegador ✓'; est.className = 'estado';
+    return;
+  }
+  est.textContent = '⚠ No se está guardando'; est.className = 'estado mal';
+  av.classList.add('on');
+  av.innerHTML = `<div><b>Chrome abrió el archivo de una forma que no guarda.</b>
+    Cerrá esta pestaña y abrí la app escribiendo la ruta en la barra de direcciones, por ejemplo
+    <code>file:///storage/emulated/0/Download/Sobres/index.html</code>
+    (ajustá la carpeta a donde lo copiaste). Después usá el menú de Chrome → <em>Agregar a pantalla de inicio</em> para no volver a escribirla.
+    Mientras tanto, cualquier cambio se pierde al cerrar — si ya tenés datos, descargá un respaldo antes.</div>`;
+}
+async function cargar() {
+  try {
+    let raw = null;
+    if (enArtefacto) { const r = await window.storage.get(CLAVE); raw = r?.value; }
+    else raw = localStorage.getItem(CLAVE);
+    let local = raw ? { ...semilla(), ...JSON.parse(raw) } : null;
+    const nube = await bajar();
+    // gana el más reciente; si solo hay uno, ese
+    if (nube && (!local || (nube.actualizado || 0) > (local.actualizado || 0))) { S = { ...semilla(), ...nube }; localStorage.setItem(CLAVE, JSON.stringify(S)); }
+    else if (local) { S = local; if (sesion && (!nube || (local.actualizado || 0) > (nube.actualizado || 0))) subir(); }
+  } catch (e) { console.error(e); }
+  if (navigator.storage?.persist) navigator.storage.persist().catch(() => {});
+  guardadoOK = probarGuardado();
+  precargar(); render(); avisarGuardado();
+}
+async function guardar() {
+  S.actualizado = Date.now();
+  const raw = JSON.stringify(S);
+  try { if (enArtefacto) await window.storage.set(CLAVE, raw); else localStorage.setItem(CLAVE, raw); }
+  catch (e) { console.error(e); if (guardadoOK) { guardadoOK = false; avisarGuardado(); } }
+  subir();
+}
+function exportar() {
+  const b = new Blob([JSON.stringify(S, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(b);
+  a.download = `sobres-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+  toast('Respaldo descargado');
+}
+function importar(file) {
+  const r = new FileReader();
+  r.onload = () => { try { S = { ...semilla(), ...JSON.parse(r.result) }; precargar(); guardar(); render(); toast('Respaldo restaurado'); } catch { toast('Ese archivo no es un respaldo válido'); } };
+  r.readAsText(file);
+}
+
+/* ── lógica ── */
+function normalizarPeriodo() {
+  const d = inicioQ(); const dia = d.getDate();
+  if (dia === 1 || dia === 15) return;
+  d.setDate(dia >= 15 ? 15 : 1);
+  S.periodo.inicio = d.toISOString().slice(0, 10);
+}
+function precargar() {
+  normalizarPeriodo();
+  for (const s of activos()) {
+    if ((s.tipo === 'fijo' || s.tipo === 'deuda') && !s.cuando) s.cuando = cuandoDe(s);
+    if ((s.tipo === 'fijo' || s.tipo === 'deuda') && !aplica(s)) { S.asig[s.id] = 0; continue; }
+    if (S.asig[s.id] !== undefined) continue;
+    S.asig[s.id] = !aplica(s) ? 0 : s.tipo === 'fijo' ? (s.esperado || 0) : s.tipo === 'deuda' ? (s.cuota || 0) : 0;
+  }
+}
+const entro    = () => S.ingresos.reduce((a, i) => a + i.monto, 0);
+const asignado = () => activos().reduce((a, s) => a + (S.asig[s.id] || 0), 0);
+const libre    = () => entro() - asignado();
+const porTipo  = t => activos().filter(s => s.tipo === t).reduce((a, s) => a + (S.asig[s.id] || 0), 0);
+const gastado  = id => S.movs.filter(m => m.sobre === id && m.q === S.periodo.n).reduce((a, m) => a + m.monto, 0);
+const diasQ    = () => Math.min(largoQ(), Math.max(0, Math.round((Date.now() - inicioQ()) / 864e5)));
+const ref = s => s.tipo === 'fijo' ? s.esperado : s.tipo === 'deuda' ? s.cuota : s.tipo === 'variable' ? mediana(s.hist || []) : mediana(s.histA || []);
+
+function setAsig(id, v) {
+  const antes = (S.asig[id] || 0) - gastado(id);
+  S.asig[id] = Math.max(0, Math.round(v));
+  guardar(); renderReparto();
+  const despues = S.asig[id] - gastado(id);
+  if (antes >= 0 && despues < 0) tiembla(id);
+}
+
+function sobranteAhorro() {
+  const l = libre(); if (l <= 0) return;
+  const ah = activos().filter(s => s.tipo === 'ahorro');
+  if (!ah.length) { toast('Creá un sobre de ahorro primero'); return; }
+  const gaps = ah.map(s => Math.max(0, s.meta - s.acum - (S.asig[s.id] || 0)));
+  const tg = gaps.reduce((a, g) => a + g, 0);
+  ah.forEach((s, i) => { S.asig[s.id] += tg > 0 ? Math.round(l * gaps[i] / tg) : Math.round(l / ah.length); });
+  const d = libre(); if (d !== 0) S.asig[ah[0].id] += d;
+  guardar(); renderReparto(); toast(`${S.gato} repartió el sobrante en los ahorros`);
+}
+
+function cerrarQuincena() {
+  if (libre() < 0) { toast('Están repartiendo más de lo que entró'); gatoBolsa('alerta', 1500); return; }
+  for (const s of activos()) {
+    const m = S.asig[s.id] || 0;
+    if (s.tipo === 'variable') { const g = gastado(s.id); (s.hist = s.hist || []).push(g > 0 ? g : m); }
+    if (s.tipo === 'ahorro')   { s.acum += m; (s.histA = s.histA || []).push(m); }
+    if (s.tipo === 'deuda')    { const i = s.saldo * s.tasa / 100 / 24; s.saldo = Math.max(0, s.saldo + i - m); }
+  }
+  const d = qInfo(1).d;
+  S.periodo = { inicio: d.toISOString().slice(0, 10), n: S.periodo.n + 1 };
+  S.asig = {}; S.pagado = {}; S.celebrado = false;
+  precargar(); guardar(); render();
+  toast('Quincena cerrada · deudas y ahorros ya se movieron');
+}
+
+/* ── simulador de deudas ── */
+function simular(extra, estrategia) {
+  const ds = activos().filter(s => s.tipo === 'deuda' && s.saldo > 0).map(d => ({ ...d }));
+  let q = 0, interes = 0; const serie = [ds.map(d => d.saldo)];
+  while (ds.some(d => d.saldo > 0) && q < 240) {
+    q++; let pool = extra; const tq = qInfo(q).tipo;
+    for (const d of ds) {
+      const cq = aplica(d, tq) ? d.cuota : 0;
+      if (d.saldo <= 0) { pool += cq; continue; }
+      const i = d.saldo * d.tasa / 100 / 24; interes += i; d.saldo += i;
+      const pago = Math.min(cq, d.saldo); d.saldo -= pago;
+    }
+    const orden = ds.filter(d => d.saldo > 0).sort((a, b) => estrategia === 'avalancha' ? b.tasa - a.tasa : a.saldo - b.saldo);
+    for (const d of orden) { if (pool <= 0) break; const p = Math.min(pool, d.saldo); d.saldo -= p; pool -= p; }
+    serie.push(ds.map(d => Math.max(0, d.saldo)));
+  }
+  return { q, interes, serie, nombres: ds.map(d => d.nom) };
+}
+
+/* ═══════════════════════════════════════════════
+   GATO
+   ═══════════════════════════════════════════════ */
+function gato(estado = 'neutro', size = 64) {
+  return `<svg class="gato ${estado}" width="${size}" height="${size * 100 / 120}" viewBox="0 0 120 100" aria-hidden="true">
+    <path class="cola" d="M96 74 C112 70 116 52 104 44" fill="none" stroke="var(--gato3)" stroke-width="7" stroke-linecap="round"/>
+    <g class="cuerpo">
+      <ellipse cx="60" cy="74" rx="34" ry="22" fill="var(--gato)"/>
+      <ellipse cx="60" cy="80" rx="20" ry="12" fill="var(--gato2)"/>
+      <polygon class="oreja" style="--r:-22deg" points="38,28 40,4 56,20" fill="var(--gato)"/>
+      <polygon class="oreja" style="--r:22deg"  points="82,28 80,4 64,20" fill="var(--gato)"/>
+      <polygon points="42,25 43,10 53,20" fill="#F2B7B0"/>
+      <polygon points="78,25 77,10 67,20" fill="#F2B7B0"/>
+      <circle cx="60" cy="42" r="26" fill="var(--gato)"/>
+      <path d="M46 20 q3 -6 6 0 M58 17 q3 -7 6 0 M70 20 q3 -6 6 0" fill="none" stroke="var(--gato3)" stroke-width="2.5" stroke-linecap="round"/>
+      <g class="ojos"><ellipse cx="49" cy="42" rx="4" ry="5" fill="var(--ink)"/><ellipse cx="71" cy="42" rx="4" ry="5" fill="var(--ink)"/>
+        <circle cx="50.5" cy="40" r="1.3" fill="#fff"/><circle cx="72.5" cy="40" r="1.3" fill="#fff"/></g>
+      <g class="ojos-feliz" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"><path d="M44 43 q5 -6 10 0"/><path d="M66 43 q5 -6 10 0"/></g>
+      <g class="ojos-cerrados" fill="none" stroke="var(--ink)" stroke-width="2.5" stroke-linecap="round"><path d="M44 43 h10"/><path d="M66 43 h10"/></g>
+      <polygon points="57,50 63,50 60,54" fill="#D67D6E"/>
+      <path d="M60 54 q-4 5 -8 2 M60 54 q4 5 8 2" fill="none" stroke="var(--ink)" stroke-width="1.6" stroke-linecap="round"/>
+      <g stroke="var(--gato3)" stroke-width="1.5" stroke-linecap="round" opacity=".8"><path d="M40 50 h-14 M40 54 l-13 3"/><path d="M80 50 h14 M80 54 l13 3"/></g>
+      <g class="zz" font-size="12" font-weight="700" fill="var(--muted)"><text x="88" y="26">z</text><text x="96" y="16">z</text></g>
+    </g>
+  </svg>`;
+}
+
+function fraseBolsa(l, est) {
+  if (est === 'alerta') return l < 0 ? `Ups. Van ${fmt(-l)} de más.` : 'Eso no cuadra…';
+  if (est === 'feliz')  return '¡Cuadrada! Cada colón tiene nombre.';
+  if (l === 0) return 'Todo repartido. Cerrá cuando quieran.';
+  if (l < 0)  return `Repartieron ${fmt(-l)} de más.`;
+  if (l === entro()) return 'Nada repartido todavía. Yo espero.';
+  return `Faltan ${fmt(l)} por repartir.`;
+}
+
+function gatoBolsa(est, ms) {
+  gatoBolsaForzado = est; clearTimeout(gatoBolsaT);
+  renderMascota();
+  gatoBolsaT = setTimeout(() => { gatoBolsaForzado = null; renderMascota(); }, ms);
+}
+
+function renderMascota() {
+  const l = libre();
+  const est = gatoBolsaForzado || (l < 0 ? 'alerta' : l === 0 && asignado() > 0 ? 'feliz' : l === entro() ? 'dormido' : 'neutro');
+  $('mascota').innerHTML = `<div class="globo">${fraseBolsa(l, est)}</div>${gato(est, 92)}`;
+}
+
+function fraseRegistro(est) {
+  if (est === 'feliz')  return '¡Anotado!';
+  if (est === 'alerta') return 'Ese sobre ya se pasó.';
+  if (est === 'dormido') return 'Hoy no he visto gastos. Sospechoso.';
+  const hoy = new Date().toDateString();
+  const n = S.movs.filter(m => new Date(m.fecha).toDateString() === hoy).length;
+  return n === 1 ? 'Uno hoy. Va bien.' : `${n} hoy. Sigo atento.`;
+}
+
+function gatoPie(est, ms) {
+  gatoPieEstado = est; clearTimeout(gatoPieT); renderGatoPie();
+  gatoPieT = setTimeout(() => { gatoPieEstado = 'neutro'; renderGatoPie(); }, ms);
+}
+
+function renderGatoPie() {
+  const hoy = new Date().toDateString();
+  const hayHoy = S.movs.some(m => new Date(m.fecha).toDateString() === hoy);
+  const est = gatoPieEstado !== 'neutro' ? gatoPieEstado : hayHoy ? 'neutro' : 'dormido';
+  $('gatoPie').innerHTML = `<div class="globo abajo">${fraseRegistro(est)}</div>${gato(est, 58)}`;
+}
+
+/* ═══════════════════════════════════════════════
+   RENDER
+   ═══════════════════════════════════════════════ */
+function render() {
+  $('titulo').innerHTML = `Quincena del ${tipoQ() === 'q1' ? '1' : '15'} <span>${fechaQ(0)} · #${S.periodo.n}</span>`;
+  renderRegistro(); renderReparto(); renderDash();
+}
+
+/* barras que animan aunque el DOM se reconstruya */
+const prevW = {};
+const barra = (key, pct, cls = '', fina = false, color = '') =>
+  `<div class="barra ${fina ? 'fina' : ''}"><i class="${cls}" data-bar="${key}" data-w="${Math.max(0, Math.min(100, pct))}" style="width:${prevW[key] ?? 0}%;${color ? 'background:' + color : ''}"></i></div>`;
+function animarBarras(root) {
+  requestAnimationFrame(() => root.querySelectorAll('[data-bar]').forEach(el => { el.style.width = el.dataset.w + '%'; prevW[el.dataset.bar] = +el.dataset.w; }));
+}
+
+/* ── registro ── */
+function renderRegistro() {
+  const n = digitos ? parseInt(digitos, 10) : 0;
+  const el = $('montoG'); el.textContent = fmt(n); el.classList.toggle('vacio', !digitos);
+  const vars = activos().filter(s => s.tipo === 'variable');
+  $('cats').innerHTML = vars.map(s => {
+    const q = (S.asig[s.id] || 0) - gastado(s.id);
+    return `<button class="cat" data-cat="${s.id}" ${digitos ? '' : 'disabled'}>
+      <span class="nom">${esc(s.nom)}</span><span class="queda ${q < 0 ? 'neg' : ''} num">${q < 0 ? 'pasado ' + fmt(-q) : 'quedan ' + fmt(q)}</span>
+    </button>`; }).join('') + (vars.length ? '' : `<button class="nuevo" data-nuevo="variable" style="grid-column:1/-1">+ Creá un sobre variable para registrar gastos</button>`);
+
+  if (digitos) $('frecuentes').innerHTML = '';
+  else {
+    const c = {}; S.movs.slice(-60).forEach(m => { const k = m.sobre + '|' + m.monto; c[k] = (c[k] || 0) + 1; });
+    const top = Object.entries(c).filter(([, v]) => v >= 2).sort((a, b) => b[1] - a[1]).slice(0, 4);
+    $('frecuentes').innerHTML = top.map(([k]) => { const [id, mo] = k.split('|'); const s = S.sobres.find(x => x.id === id && x.activo !== false); return s ? `<button class="frec" data-frec="${k}"><span>${esc(s.nom)}</span><b class="num">${fmt(+mo)}</b></button>` : ''; }).join('');
+  }
+
+  const hoy = new Date().toDateString();
+  const gHoy = S.movs.filter(m => new Date(m.fecha).toDateString() === hoy).reduce((a, m) => a + m.monto, 0);
+  const gQ = vars.reduce((a, s) => a + gastado(s.id), 0), aQ = porTipo('variable');
+  $('hoy').innerHTML = `<span>Hoy <b class="num">${fmt(gHoy)}</b></span><span>Quincena <b class="num">${fmt(gQ)}</b> de ${fmt(aQ)}</span><span>Día ${diasQ()} de ${largoQ()}</span><button class="verMovs" id="btnMovs">Ver y corregir movimientos →</button>`;
+  renderGatoPie();
+}
+
+function tecla(k) {
+  if (k === 'del') digitos = digitos.slice(0, -1);
+  else if (k === '000') { if (digitos) digitos = (digitos + '000').slice(0, 9); }
+  else digitos = (digitos === '' && k === '0') ? '' : (digitos + k).slice(0, 9);
+  renderRegistro();
+  const el = $('montoG'); el.classList.remove('pulso'); void el.offsetWidth; el.classList.add('pulso');
+}
+
+function volar(desde, hasta, texto) {
+  if (reduce) return;
+  const a = desde.getBoundingClientRect(), b = hasta.getBoundingClientRect();
+  const v = document.createElement('div'); v.className = 'vuela num'; v.textContent = texto;
+  v.style.left = a.right + 'px'; v.style.top = a.top + 'px'; v.style.transform = 'translateX(-100%)';
+  document.body.appendChild(v);
+  v.animate([
+    { transform: 'translateX(-100%) scale(1)', opacity: 1 },
+    { transform: `translate(${b.left + b.width/2 - a.right}px, ${b.top + b.height/2 - a.top}px) scale(.25)`, opacity: .2 }
+  ], { duration: 420, easing: 'cubic-bezier(.3,.7,.4,1)' }).onfinish = () => v.remove();
+}
+
+function registrar(sobre, monto, btn) {
+  if (btn) volar($('montoG'), btn, fmt(monto));
+  const mov = { id: Date.now(), sobre, monto, fecha: new Date().toISOString(), q: S.periodo.n };
+  S.movs.push(mov); ultimoMov = mov; digitos = '';
+  guardar(); renderRegistro(); renderReparto();
+  const nb = $('cats').querySelector(`[data-cat="${sobre}"]`); if (nb) { nb.classList.add('recibe'); }
+  if (navigator.vibrate) navigator.vibrate(12);
+  const s = S.sobres.find(x => x.id === sobre);
+  const q = (S.asig[sobre] || 0) - gastado(sobre);
+  gatoPie(q < 0 ? 'alerta' : 'feliz', 1800);
+  $('undoTxt').innerHTML = `${fmt(monto)} <span>· ${esc(s.nom)}</span>`;
+  $('undo').classList.add('on'); clearTimeout(undoT); undoT = setTimeout(() => $('undo').classList.remove('on'), 4000);
+}
+function deshacer() {
+  if (!ultimoMov) return;
+  S.movs = S.movs.filter(m => m.id !== ultimoMov.id); ultimoMov = null;
+  $('undo').classList.remove('on'); clearTimeout(undoT);
+  guardar(); renderRegistro(); renderReparto();
+}
+
+/* ── movimientos: corregir y borrar ── */
+function abrirMovs() { renderMovs(); $('velo').classList.add('on'); $('hojaMovs').classList.add('on'); }
+function cerrarMovs() { $('velo').classList.remove('on'); $('hojaMovs').classList.remove('on'); }
+function renderMovs() {
+  const vars = activos().filter(s => s.tipo === 'variable');
+  const ms = S.movs.filter(m => m.q === S.periodo.n).sort((a, b) => b.id - a.id);
+  if (!ms.length) { $('listaMovs').innerHTML = `<p class="nota" style="margin-top:14px">Nada registrado en esta quincena todavía.</p>`; return; }
+  const g = {}; ms.forEach(m => { const k = new Date(m.fecha).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' }); (g[k] = g[k] || []).push(m); });
+  $('listaMovs').innerHTML = Object.entries(g).map(([dia, items]) => `<p class="dia">${dia}</p>` + items.map(m => `
+    <div class="mov" data-mov="${m.id}">
+      <select data-mf="sobre">${vars.map(s => `<option value="${s.id}" ${s.id === m.sobre ? 'selected' : ''}>${esc(s.nom)}</option>`).join('')}${vars.some(s => s.id === m.sobre) ? '' : `<option value="${m.sobre}" selected>(sobre archivado)</option>`}</select>
+      <input type="number" inputmode="numeric" data-mf="monto" value="${m.monto}">
+      <button class="x" data-borrar="${m.id}" title="Borrar">×</button>
+      <span class="hora">${new Date(m.fecha).toLocaleTimeString('es-CR', { hour: 'numeric', minute: '2-digit' })}</span>
+    </div>`).join('')).join('');
+}
+$('listaMovs').addEventListener('change', e => {
+  const row = e.target.closest('[data-mov]'); if (!row) return;
+  const m = S.movs.find(x => x.id === +row.dataset.mov); if (!m) return;
+  const f = e.target.dataset.mf;
+  if (f === 'monto') { const v = Math.max(0, parseInt(e.target.value || '0', 10)); if (!v) { e.target.value = m.monto; return; } m.monto = v; }
+  if (f === 'sobre') m.sobre = e.target.value;
+  guardar(); renderRegistro(); renderReparto(); toast('Movimiento corregido');
+});
+$('listaMovs').addEventListener('click', e => {
+  const b = e.target.closest('[data-borrar]'); if (!b) return;
+  const m = S.movs.find(x => x.id === +b.dataset.borrar); if (!m) return;
+  const s = S.sobres.find(x => x.id === m.sobre);
+  if (!confirm(`¿Borrar ${fmt(m.monto)} de ${s ? s.nom : 'ese sobre'}?`)) return;
+  S.movs = S.movs.filter(x => x.id !== m.id); guardar(); renderMovs(); renderRegistro(); renderReparto(); toast('Movimiento borrado');
+});
+$('movsCerrar').addEventListener('click', cerrarMovs);
+document.addEventListener('click', e => { if (e.target.id === 'btnMovs') abrirMovs(); });
+
+/* ── reparto ── */
+let libreMostrado = null;
+function renderReparto() {
+  const l = libre(), e = entro();
+  const el = $('libre');
+  tween(el, libreMostrado ?? l, l); libreMostrado = l;
+  el.className = 'grande num' + (l < 0 ? ' neg' : l === 0 ? ' cero' : '');
+  $('entro').textContent = fmt(e);
+  const mini = $('libreMini'); mini.textContent = fmt(l); mini.className = 'mini num' + (l < 0 ? ' neg' : l === 0 ? ' cero' : '');
+  $('seg').innerHTML = Object.keys(TIPO).map(t => `<i style="width:${e ? porTipo(t)/e*100 : 0}%;background:${TIPO[t].color}"></i>`).join('');
+  $('ingresos').innerHTML = S.ingresos.map((i, k) => `
+    <div class="ing"><button class="q" data-ingq="${k}">${esc(i.quien)}</button><button class="num" data-ing="${k}">${fmt(i.monto)}</button></div>`).join('')
+    + `<button class="masIng" id="masIng">+ ingreso extra</button>`;
+  $('btnSobrante').disabled = l <= 0;
+  $('btnCerrar').textContent = l === 0 ? 'Cerrar quincena ✓' : 'Cerrar quincena';
+
+  $('grupos').innerHTML = Object.keys(TIPO).map(t => {
+    const todos = activos().filter(s => s.tipo === t && !(t === 'deuda' && s.saldo <= 0));
+    const ss = todos.filter(s => aplica(s)), fuera = todos.length - ss.length;
+    return `<div class="grupo">
+      <h2><span>${TIPO[t].nom}<span class="tipoDesc">· ${fuera ? `${fuera} se paga${fuera > 1 ? 'n' : ''} en la otra quincena` : TIPO[t].desc}</span></span><b class="num">${fmt(porTipo(t))}</b></h2>
+      <div class="sobres">${ss.map(s => tarjeta(s)).join('')}
+        <button class="nuevo" data-nuevo="${t}">+ Nuevo sobre ${t === 'fijo' ? 'fijo' : t === 'deuda' ? 'de deuda' : t}</button>
+      </div>
+      ${fuera ? `<details class="otra"><summary>${fuera} de la otra quincena — tocá para ver o editar</summary>
+        ${todos.filter(s => !aplica(s)).map(s => `<div class="otraFila" style="--tc:${TIPO[t].color}"><button class="nom" data-editar="${s.id}">${esc(s.nom)}</button><span class="num">${fmt(s.tipo === 'fijo' ? (s.esperado || 0) : (s.cuota || 0))} · q. del ${cuandoDe(s) === 'q1' ? '1' : '15'}</span></div>`).join('')}
+      </details>` : ''}
+    </div>`;
+  }).join('');
+  animarBarras($('grupos'));
+  renderMascota();
+
+  if (l === 0 && !S.celebrado && asignado() > 0) { S.celebrado = true; guardar(); confeti(); }
+}
+
+function tarjeta(s) {
+  const m = S.asig[s.id] || 0, r = ref(s), t = TIPO[s.tipo];
+  let pct, refTxt, ctrl, extra = '';
+  if (s.tipo === 'fijo') {
+    pct = r ? m / r * 100 : 0; refTxt = (s.diaCorte ? `vence el ${s.diaCorte} · ` : '') + (cuandoDe(s) === 'ambas' ? 'cada quincena' : 'q. del ' + (cuandoDe(s) === 'q1' ? '1' : '15'));
+    ctrl = chk(s.id) + montoBtn(s.id, m);
+  } else if (s.tipo === 'deuda') {
+    pct = s.saldo ? (m / s.saldo * 100) : 0; refTxt = `saldo ${fmt(s.saldo)} · ${s.tasa}%` + (cuandoDe(s) === 'ambas' ? '' : ' · q. del ' + (cuandoDe(s) === 'q1' ? '1' : '15'));
+    ctrl = chk(s.id) + stepper(s.id, m);
+  } else if (s.tipo === 'variable') {
+    pct = r ? m / r * 100 : 0; refTxt = r ? `mediana ${fmt(r)}` : 'sin historial';
+    ctrl = `<span class="ref">${(s.hist || []).length} quinc.</span>` + stepper(s.id, m);
+    const g = gastado(s.id), q = m - g;
+    if (g > 0) extra = `<div class="sub2"><span>gastado ${fmt(g)}</span><b class="${q < 0 ? 'neg' : ''}">${q < 0 ? 'pasado ' + fmt(-q) : 'quedan ' + fmt(q)}</b></div>` + barra(s.id + ':g', m ? g/m*100 : 100, g > m ? 'over' : '', true);
+  } else {
+    pct = s.meta ? (s.acum + m) / s.meta * 100 : 0;
+    const falta = (s.meta || 0) - s.acum - m;
+    refTxt = falta > 0 ? `faltan ${fmt(falta)}` : 'meta alcanzada';
+    ctrl = `<span class="ref">${fmt(s.acum)} de ${fmtK(s.meta || 0)}</span>` + stepper(s.id, m);
+  }
+  const over = pct > 100 && s.tipo !== 'ahorro';
+  return `<div class="sobre ${S.pagado[s.id] ? 'pagado' : ''}" data-sobre="${s.id}" style="--tc:${t.color}">
+    <div class="top">
+      <div><button class="nom" data-editar="${s.id}">${esc(s.nom)}</button>${s.para ? `<div class="para">${esc(s.para)}</div>` : ''}</div>
+      <span class="ref">${refTxt}</span>
+    </div>
+    ${barra(s.id, pct, over ? 'over' : '')}
+    <div class="ctrl">${ctrl}</div>${extra}
+  </div>`;
+}
+const chk = id => `<button class="chk ${S.pagado[id] ? 'on' : ''}" data-pag="${id}"><i>${S.pagado[id] ? '✓' : ''}</i>${S.pagado[id] ? 'Pagado' : 'Sin pagar'}</button>`;
+const montoBtn = (id, m) => `<button class="monto num" data-edit="${id}">${fmt(m)}</button>`;
+const stepper = (id, m) => `<div class="step"><button data-step="${id}" data-d="-5000">−</button>${montoBtn(id, m)}<button data-step="${id}" data-d="5000">+</button></div>`;
+function tiembla(id) { const c = $('grupos').querySelector(`[data-sobre="${id}"]`); if (c) { c.classList.add('tiembla'); setTimeout(() => c.classList.remove('tiembla'), 500); } gatoBolsa('alerta', 1400); }
+
+function editarMonto(btn, id, esIngreso) {
+  const val = esIngreso ? S.ingresos[id].monto : S.asig[id];
+  const inp = document.createElement('input'); inp.type = 'number'; inp.inputMode = 'numeric'; inp.value = val; inp.className = 'num m';
+  btn.replaceWith(inp); inp.focus(); inp.select();
+  const commit = () => { const v = Math.max(0, parseInt(inp.value || '0', 10)); if (esIngreso) { S.ingresos[id].monto = v; guardar(); renderReparto(); } else setAsig(id, v); };
+  inp.addEventListener('blur', commit);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.removeEventListener('blur', commit); renderReparto(); } });
+}
+function editarQuien(btn, k) {
+  const inp = document.createElement('input'); inp.value = S.ingresos[k].quien; inp.style.width = '110px';
+  btn.replaceWith(inp); inp.focus(); inp.select();
+  const commit = () => { S.ingresos[k].quien = inp.value.trim() || 'Ingreso'; guardar(); renderReparto(); };
+  inp.addEventListener('blur', commit); inp.addEventListener('keydown', e => { if (e.key === 'Enter') inp.blur(); });
+}
+
+/* ── editor de sobres ── */
+let ed = null;
+function abrirEditor(id, tipo) {
+  const s = id ? S.sobres.find(x => x.id === id) : null;
+  ed = s ? JSON.parse(JSON.stringify(s)) : { id: null, nom: '', para: '', tipo: tipo || 'variable', esperado: 0, diaCorte: '', acreedor: '', saldo: 0, tasa: 0, cuota: 0, meta: 0, acum: 0 };
+  $('edTitulo').textContent = s ? 'Editar sobre' : 'Nuevo sobre';
+  $('edArchivar').style.display = s ? '' : 'none';
+  renderEditor(); $('velo').classList.add('on'); $('editor').classList.add('on');
+  setTimeout(() => $('edNom')?.focus(), 320);
+}
+function cerrarEditor() { $('velo').classList.remove('on'); $('editor').classList.remove('on'); ed = null; }
+
+function renderEditor() {
+  const c = (id, label, val, attrs = '') => `<div class="campo"><label for="${id}">${label}</label><input id="${id}" data-f="${id[2].toLowerCase() + id.slice(3)}" value="${esc(val)}" ${attrs}></div>`;
+  const num = (id, label, val) => c(id, label, val || '', 'type="number" inputmode="numeric"');
+  let campos = '';
+  const cu = ed.cuando || cuandoDe(ed);
+  const selCuando = `<div class="campo"><label>Se paga con la quincena del</label><div class="tipos" style="grid-template-columns:1fr 1fr 1fr">${Object.keys(CUANDO).map(k => `<button type="button" class="tipoB" data-cuando="${k}" aria-pressed="${cu === k}" style="--tc:var(--t-${ed.tipo})"><b>${k === 'ambas' ? 'Ambas' : k === 'q1' ? '1' : '15'}</b><span>${k === 'ambas' ? 'la cuota va en cada quincena' : k === 'q1' ? 'lo que vence del 1 al 14' : 'lo que vence del 15 al 31'}</span></button>`).join('')}</div></div>`;
+  if (ed.tipo === 'fijo')     campos = `<div class="campo"><div class="dos">${num('edEsperado', 'Cuánto', ed.esperado)}${num('edDiaCorte', 'Día que vence', ed.diaCorte)}</div></div>` + selCuando;
+  if (ed.tipo === 'deuda')    campos = c('edAcreedor', 'A quién le debés', ed.acreedor) + `<div class="campo"><div class="dos">${num('edSaldo', 'Saldo actual', ed.saldo)}${num('edCuota', 'Cuota mínima', ed.cuota)}</div></div>` + num('edTasa', 'Tasa anual (%)', ed.tasa) + selCuando;
+  if (ed.tipo === 'ahorro')   campos = `<div class="campo"><div class="dos">${num('edMeta', 'Meta', ed.meta)}${num('edAcum', 'Ya tenés', ed.acum)}</div></div>`;
+  $('edBody').innerHTML = `
+    ${c('edNom', 'Nombre del sobre', ed.nom, 'placeholder="Ej. Marchamo, Súper, Cumpleaños de mamá"')}
+    <div class="campo"><label for="edPara">Para qué es esta plata</label><textarea id="edPara" data-f="para" placeholder="Una línea que te recuerde por qué la apartás">${esc(ed.para)}</textarea></div>
+    <div class="campo"><label>Qué tipo de sobre es</label>
+      <div class="tipos">${Object.entries(TIPO).map(([k, t]) => `<button class="tipoB" data-tipo="${k}" aria-pressed="${ed.tipo === k}" style="--tc:${t.color}"><b>${t.nom.replace(/s$/, '')}</b><span>${t.desc}</span></button>`).join('')}</div>
+    </div>
+    ${campos}`;
+}
+
+function guardarSobre() {
+  if (!ed.nom.trim()) { toast('Ponele nombre al sobre'); $('edNom').focus(); return; }
+  const num = v => Math.max(0, parseFloat(v) || 0);
+  const base = { nom: ed.nom.trim(), para: (ed.para || '').trim(), tipo: ed.tipo, activo: true };
+  if (ed.tipo === 'fijo')   Object.assign(base, { esperado: num(ed.esperado), diaCorte: parseInt(ed.diaCorte) || null, cuando: ed.cuando || cuandoDe({ ...ed, diaCorte: parseInt(ed.diaCorte) || null }) });
+  if (ed.tipo === 'deuda')  Object.assign(base, { acreedor: ed.acreedor || '', saldo: num(ed.saldo), tasa: num(ed.tasa), cuota: num(ed.cuota), cuando: ed.cuando || 'ambas' });
+  if (ed.tipo === 'ahorro') Object.assign(base, { meta: num(ed.meta), acum: num(ed.acum) });
+  let s = ed.id ? S.sobres.find(x => x.id === ed.id) : null;
+  if (s) Object.assign(s, base); else { s = { id: 'x' + Date.now(), ...base }; S.sobres.push(s); }
+  if (s.tipo === 'variable') s.hist = s.hist || []; if (s.tipo === 'ahorro') s.histA = s.histA || [];
+  if (S.asig[s.id] === undefined || !ed.id || s.tipo === 'fijo' || s.tipo === 'deuda') S.asig[s.id] = !aplica(s) ? 0 : s.tipo === 'fijo' ? s.esperado : s.tipo === 'deuda' ? s.cuota : 0;
+  const esNuevo = !ed.id;
+  guardar(); cerrarEditor(); render();
+  toast(esNuevo ? `Sobre "${s.nom}" creado` : 'Sobre actualizado');
+}
+function archivarSobre() {
+  const s = S.sobres.find(x => x.id === ed.id); if (!s) return;
+  s.activo = false; delete S.asig[s.id]; delete S.pagado[s.id];
+  guardar(); cerrarEditor(); render(); toast(`"${s.nom}" archivado`);
+}
+
+/* ── dashboard ── */
+function renderDash() {
+  const e = entro(), a = asignado();
+  const act = activos();
+  const top = act.filter(s => (S.asig[s.id] || 0) > 0).sort((x, y) => (S.asig[y.id]||0) - (S.asig[x.id]||0)).slice(0, 6);
+  const maxTop = Math.max(...top.map(s => S.asig[s.id] || 0), 1);
+  const vars = act.filter(s => s.tipo === 'variable');
+  const ahorros = act.filter(s => s.tipo === 'ahorro');
+  const deudas  = act.filter(s => s.tipo === 'deuda' && s.saldo > 0);
+  const saldoDeuda = deudas.reduce((x, d) => x + d.saldo, 0);
+  const base = simular(0, S.estrategia), conExtra = simular(S.extra, S.estrategia);
+  const otra = simular(S.extra, S.estrategia === 'nieve' ? 'avalancha' : 'nieve');
+  const varMed = vars.reduce((x, s) => x + mediana(s.hist || []), 0), varP80 = vars.reduce((x, s) => x + p80(s.hist || []), 0);
+  const nDatos = vars.length ? Math.min(...vars.map(s => (s.hist || []).length)) : 0;
+  const proy = Array.from({ length: 6 }, (_, i) => { const tq = qInfo(i + 1).tipo;
+    const fij = act.filter(s => s.tipo === 'fijo' && aplica(s, tq)).reduce((x, s) => x + (s.esperado || 0), 0);
+    const cuo = deudas.filter(d => aplica(d, tq)).reduce((x, d) => x + d.cuota, 0);
+    return { med: e - fij - cuo - varMed, p80: e - fij - cuo - varP80, etiq: etiqQ(i + 1) }; });
+  const ahorroQ = porTipo('ahorro');
+
+  $('dash').innerHTML = `
+    <div class="card ancho"><div class="kpis">
+      <div class="kpi"><span>Entró</span><b class="num">${fmtK(e)}</b></div>
+      <div class="kpi"><span>Repartido</span><b class="num">${fmtK(a)}</b></div>
+      <div class="kpi"><span>A ahorro</span><b class="num" style="color:var(--t-ahorro)">${fmtK(ahorroQ)}</b></div>
+    </div></div>
+
+    <div class="card"><h2>Adónde va la plata</h2><p class="sub">Esta quincena, como % de lo que entró</p>
+      ${top.map(s => `<div class="hbar"><span class="n">${esc(s.nom)}</span><span class="b"><i data-bar="d:${s.id}" data-w="${(S.asig[s.id]||0)/maxTop*100}" style="width:0;background:${TIPO[s.tipo].color}"></i></span><span class="v num">${e ? Math.round((S.asig[s.id]||0)/e*100) : 0}%</span></div>`).join('')}
+      <div class="ley">${Object.values(TIPO).map(t => `<span><i style="background:${t.color}"></i>${t.nom}</span>`).join('')}</div>
+    </div>
+
+    <div class="card"><h2>Ritmo de la quincena</h2><p class="sub">Día ${diasQ()} de ${largoQ()} · gastado contra cuánto va de quincena</p>
+      ${vars.map(s => { const m = S.asig[s.id] || 0, g = gastado(s.id), pG = m ? g/m*100 : 0, pT = diasQ()/largoQ()*100;
+        const est = !g ? 'sin registros' : pG > pT + 15 ? 'vas rápido' : pG < pT - 15 ? 'vas holgado' : 'en ritmo';
+        return `<div class="hbar" style="grid-template-columns:96px 1fr 88px"><span class="n">${esc(s.nom)}</span>
+          <span class="b"><i data-bar="r:${s.id}" data-w="${Math.min(100,pG)}" style="width:0;background:${pG > 100 ? 'var(--bad)' : 'var(--t-variable)'}"></i><i style="position:absolute;top:-3px;bottom:-3px;left:${pT}%;width:2px;background:var(--ink);border-radius:1px"></i></span>
+          <span class="v" style="color:${est === 'vas rápido' ? 'var(--bad)' : 'var(--muted)'}">${est}</span></div>`; }).join('') || `<p class="nota">Sin sobres variables todavía.</p>`}
+      <div class="ley"><span><i style="background:var(--t-variable)"></i>Gastado</span><span><i style="background:var(--ink);width:2px"></i>Donde va la quincena</span></div>
+    </div>
+
+    <div class="card"><div class="cabG"><div><h2>Ahorros</h2><p class="sub">Al ritmo de esta quincena</p></div>${gato(ahorroQ > 0 ? 'feliz' : 'dormido', 54)}</div>
+      ${ahorros.map(s => { const m = S.asig[s.id] || 0, tot = s.acum + m, falta = s.meta - tot, q = m > 0 ? Math.ceil(falta / m) : null;
+        return `<div class="ahorro"><div class="l1"><b>${esc(s.nom)}</b><span class="num">${fmtK(tot)} / ${fmtK(s.meta)}</span></div>
+          ${barra('a:' + s.id, s.meta ? tot/s.meta*100 : 0, '', false, 'var(--t-ahorro)')}
+          <div class="l2">${s.para ? esc(s.para) + ' · ' : ''}${falta <= 0 ? 'Meta alcanzada' : q ? `llegás en ${q} quincenas · ${fechaQ(q)}` : 'asigná algo para proyectar'}</div></div>`; }).join('') || `<p class="nota">Sin metas de ahorro todavía. Creá una en Reparto.</p>`}
+    </div>
+
+    <div class="card ancho"><h2>Deudas · ${fmt(saldoDeuda)} en total</h2><p class="sub">Movés el abono extra y ves cuándo quedan libres</p>
+      ${deudas.length ? `
+      <div class="estrat">
+        <button data-est="nieve" aria-pressed="${S.estrategia==='nieve'}">Bola de nieve · saldo menor primero</button>
+        <button data-est="avalancha" aria-pressed="${S.estrategia==='avalancha'}">Avalancha · tasa mayor primero</button>
+      </div>
+      <div class="slider"><label><span>Abono extra por quincena</span><b class="num" id="extraTxt">${fmt(S.extra)}</b></label><input type="range" id="extra" min="0" max="250000" step="5000" value="${S.extra}"></div>
+      <div class="res">
+        <div class="kpi"><span>Libres de deudas</span><b>${conExtra.q} quincenas · ${fechaQ(conExtra.q)}</b>${S.extra ? `<em>${base.q - conExtra.q} quincenas antes que sin extra</em>` : ''}</div>
+        <div class="kpi"><span>Intereses que pagan</span><b class="num">${fmt(conExtra.interes)}</b>${S.extra ? `<em>ahorran ${fmt(base.interes - conExtra.interes)}</em>` : ''}</div>
+      </div>
+      ${graficoDeudas(conExtra)}
+      <div class="ley">${conExtra.nombres.map((n, i) => `<span><i style="background:${colorDeuda(i)}"></i>${esc(n)}</span>`).join('')}</div>
+      <p class="nota" style="margin-top:10px">${Math.abs(otra.interes - conExtra.interes) < 1000 ? 'Con estos números las dos estrategias cuestan casi lo mismo. Elijan la que vayan a sostener.' : conExtra.interes < otra.interes ? `Esta estrategia les ahorra ${fmt(otra.interes - conExtra.interes)} frente a la otra.` : `La otra estrategia les ahorraría ${fmt(conExtra.interes - otra.interes)} en intereses. Esta les da la primera deuda liquidada antes.`}</p>`
+      : `<p class="nota">Sin deudas activas. ${S.gato} está orgulloso.</p>`}
+    </div>
+
+    <div class="card ancho"><h2>Próximas 6 quincenas</h2><p class="sub">Lo que sobra en cada una, con los fijos y cuotas que le tocan</p>
+      ${graficoProyeccion(proy)}
+      <div class="ley"><span><i style="background:var(--t-ahorro)"></i>Sobra incluso en una quincena cara (p80)</span><span><i style="background:#B9D9D3"></i>Sobra en una típica (mediana)</span></div>
+      <p class="nota" style="margin-top:10px">${nDatos < 3 ? `Solo hay ${nDatos} quincenas cerradas con gasto variable. Con menos de 3 esto es una adivinanza — cierren un par más antes de fiarse.` : `Basado en ${nDatos} quincenas cerradas. Fijos y cuotas son exactos; lo variable es la mediana histórica.`}</p>
+    </div>`;
+  animarBarras($('dash'));
+  const r = $('extra'); if (r) { r.addEventListener('input', ev => { S.extra = +ev.target.value; $('extraTxt').textContent = fmt(S.extra); }); r.addEventListener('change', () => { guardar(); renderDash(); }); }
+}
+
+const colorDeuda = i => ['#B84A3C', '#D9856F', '#7A2E25', '#E8B4A8'][i % 4];
+function graficoDeudas(sim) {
+  const W = 640, H = 190, px = 8, py = 14, n = Math.min(sim.serie.length, 60);
+  const maxY = Math.max(...sim.serie[0], 1);
+  const x = i => px + i / Math.max(1, n - 1) * (W - px * 2), y = v => py + (1 - v / maxY) * (H - py * 2 - 14);
+  const lineas = sim.nombres.map((_, k) => `<polyline points="${sim.serie.slice(0, n).map((q, i) => `${x(i).toFixed(1)},${y(q[k]).toFixed(1)}`).join(' ')}" fill="none" stroke="${colorDeuda(k)}" stroke-width="2.5" stroke-linejoin="round" pathLength="1" style="stroke-dasharray:1;stroke-dashoffset:1;animation:traza 1.1s ease-out forwards"/>`).join('');
+  const marcas = [0, 12, 24, 36, 48].filter(q => q < n).map(q => `<text x="${x(q)}" y="${H - 2}" font-size="16" fill="#737E78" text-anchor="${q === 0 ? 'start' : 'middle'}">${q === 0 ? 'hoy' : fechaQ(q)}</text>`).join('');
+  return `<svg viewBox="0 0 ${W} ${H}"><style>@keyframes traza{to{stroke-dashoffset:0}}</style><line x1="${px}" x2="${W-px}" y1="${y(0)}" y2="${y(0)}" stroke="#D9DED7"/>${lineas}${marcas}</svg>`;
+}
+function graficoProyeccion(proy) {
+  const W = 640, H = 190, px = 8, py = 34, n = proy.length;
+  const maxY = Math.max(1, ...proy.flatMap(p => [p.med, p.p80])) * 1.2, minY = Math.min(0, ...proy.flatMap(p => [p.med, p.p80]));
+  const y = v => py + (1 - (v - minY) / (maxY - minY)) * (H - py * 2), bw = (W - px * 2) / n, w = bw * .58;
+  return `<svg viewBox="0 0 ${W} ${H}"><style>@keyframes crece{from{transform:scaleY(0)}}</style><line x1="${px}" x2="${W-px}" y1="${y(0)}" y2="${y(0)}" stroke="#D9DED7"/>
+    ${proy.map(({ med, p80: alto, etiq }, i) => { const cx = px + bw * i + bw / 2;
+      return `<g style="transform-origin:${cx}px ${y(0)}px;animation:crece .6s ${i * 70}ms cubic-bezier(.2,.8,.3,1) backwards">
+        <rect x="${cx - w/2}" y="${Math.min(y(med), y(0))}" width="${w}" height="${Math.abs(y(med) - y(0))}" fill="#B9D9D3" rx="5"/>
+        <rect x="${cx - w/2}" y="${Math.min(y(alto), y(0))}" width="${w}" height="${Math.abs(y(alto) - y(0))}" fill="var(--t-ahorro)" rx="5"/></g>
+        <text x="${cx}" y="${y(Math.max(med, alto)) - 8}" font-size="19" fill="#16201C" text-anchor="middle" font-weight="600">${fmtK(med)}</text>
+        <text x="${cx}" y="${H - 4}" font-size="17" fill="#737E78" text-anchor="middle">${etiq}</text>`; }).join('')}
+  </svg>`;
+}
+
+/* ═══════════════════════════════════════════════
+   GRACIA — tween, confeti, toast
+   ═══════════════════════════════════════════════ */
+const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function tween(el, a, b) {
+  if (reduce || a === b) { el.textContent = fmt(b); return; }
+  const t0 = performance.now(), dur = 340;
+  const f = t => { const k = Math.min(1, (t - t0) / dur), e = 1 - Math.pow(1 - k, 3); el.textContent = fmt(a + (b - a) * e); if (k < 1) requestAnimationFrame(f); };
+  requestAnimationFrame(f);
+}
+function toast(msg) { const t = $('toast'); t.textContent = msg; t.classList.add('on'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('on'), 2800); }
+function confeti() {
+  if (reduce) return;
+  const c = $('confeti'), ctx = c.getContext('2d'); c.width = innerWidth; c.height = innerHeight;
+  const cols = ['#1E8A78', '#D18B2C', '#4B6A8F', '#7FD4A4', '#E8A05A'];
+  const ps = Array.from({ length: 110 }, () => ({ x: Math.random() * c.width, y: -20 - Math.random() * 240, vx: (Math.random() - .5) * 2.4, vy: 2 + Math.random() * 3, r: 4 + Math.random() * 5, a: Math.random() * 6, va: (Math.random() - .5) * .3, col: cols[Math.random() * cols.length | 0] }));
+  const t0 = performance.now();
+  const f = t => { ctx.clearRect(0, 0, c.width, c.height);
+    for (const p of ps) { p.x += p.vx; p.y += p.vy; p.a += p.va; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.col; ctx.fillRect(-p.r/2, -p.r/3, p.r, p.r*.66); ctx.restore(); }
+    if (t - t0 < 2400) requestAnimationFrame(f); else ctx.clearRect(0, 0, c.width, c.height); };
+  requestAnimationFrame(f);
+}
+
+/* ═══════════════════════════════════════════════
+   EVENTOS
+   ═══════════════════════════════════════════════ */
+document.querySelectorAll('.tab').forEach(b => b.addEventListener('click', () => {
+  vista = b.dataset.v;
+  document.querySelectorAll('.tab').forEach(x => x.setAttribute('aria-selected', x === b));
+  document.querySelectorAll('.vista').forEach(v => { v.classList.remove('activa'); });
+  void document.body.offsetWidth;
+  $('v-' + vista).classList.add('activa');
+  if (vista === 'dash') renderDash(); if (vista === 'registro') renderRegistro(); if (vista === 'reparto') renderReparto();
+  scrollTo({ top: 0 });
+}));
+
+let holdT, holdI;
+document.addEventListener('pointerdown', e => {
+  const b = e.target.closest('[data-step]'); if (!b) return;
+  const id = b.dataset.step, d = +b.dataset.d;
+  setAsig(id, (S.asig[id] || 0) + d);
+  holdT = setTimeout(() => { holdI = setInterval(() => setAsig(id, (S.asig[id] || 0) + d), 90); }, 380);
+});
+['pointerup', 'pointercancel'].forEach(ev => document.addEventListener(ev, () => { clearTimeout(holdT); clearInterval(holdI); }));
+
+document.addEventListener('click', e => {
+  const t = e.target;
+  const pag = t.closest('[data-pag]');     if (pag) { S.pagado[pag.dataset.pag] = !S.pagado[pag.dataset.pag]; guardar(); renderReparto(); return; }
+  const ed_ = t.closest('[data-edit]');    if (ed_) { editarMonto(ed_, ed_.dataset.edit, false); return; }
+  const ing = t.closest('[data-ing]');     if (ing) { editarMonto(ing, +ing.dataset.ing, true); return; }
+  const inq = t.closest('[data-ingq]');    if (inq) { editarQuien(inq, +inq.dataset.ingq); return; }
+  const est = t.closest('[data-est]');     if (est) { S.estrategia = est.dataset.est; guardar(); renderDash(); return; }
+  const edt = t.closest('[data-editar]');  if (edt) { abrirEditor(edt.dataset.editar); return; }
+  const nvo = t.closest('[data-nuevo]');   if (nvo) { abrirEditor(null, nvo.dataset.nuevo); return; }
+  const tp  = t.closest('[data-tipo]');    if (tp && ed) { ed.tipo = tp.dataset.tipo; renderEditor(); return; }
+  const cw  = t.closest('[data-cuando]');  if (cw && ed) { ed.cuando = cw.dataset.cuando; renderEditor(); return; }
+  if (t.id === 'masIng') { S.ingresos.push({ quien: 'Extra', monto: 0 }); guardar(); renderReparto(); return; }
+  if (t.closest('#mascota .gato')) { const n = prompt('¿Cómo se llama el gato?', S.gato); if (n && n.trim()) { S.gato = n.trim(); guardar(); toast(`Ahora se llama ${S.gato}`); } return; }
+});
+
+$('edBody').addEventListener('input', e => { const f = e.target.dataset.f; if (f && ed) ed[f] = e.target.value; });
+$('edGuardar').addEventListener('click', guardarSobre);
+$('edArchivar').addEventListener('click', () => { if (confirm(`¿Archivar "${ed.nom}"? No se borra, solo deja de aparecer.`)) archivarSobre(); });
+$('edCerrar').addEventListener('click', cerrarEditor);
+$('velo').addEventListener('click', () => { cerrarEditor(); cerrarMovs(); });
+
+$('btnSobrante').addEventListener('click', sobranteAhorro);
+$('btnCerrar').addEventListener('click', cerrarQuincena);
+$('btnExportar').addEventListener('click', exportar);
+$('inpImportar').addEventListener('change', e => { if (e.target.files[0]) importar(e.target.files[0]); e.target.value = ''; });
+$('teclado').addEventListener('click', e => { const b = e.target.closest('[data-k]'); if (b) tecla(b.dataset.k); });
+$('cats').addEventListener('click', e => { const b = e.target.closest('[data-cat]'); if (b && !b.disabled && digitos) registrar(b.dataset.cat, parseInt(digitos, 10), b); });
+$('frecuentes').addEventListener('click', e => { const b = e.target.closest('[data-frec]'); if (!b) return; const [id, mo] = b.dataset.frec.split('|'); registrar(id, +mo, b); });
+$('btnUndo').addEventListener('click', deshacer);
+document.addEventListener('keydown', e => {
+  if (ed) { if (e.key === 'Escape') cerrarEditor(); return; }
+  if ($('hojaMovs').classList.contains('on')) { if (e.key === 'Escape') cerrarMovs(); return; }
+  if (vista !== 'registro' || ['INPUT','TEXTAREA'].includes(e.target.tagName)) return;
+  if (/^[0-9]$/.test(e.key)) tecla(e.key); else if (e.key === 'Backspace') tecla('del');
+});
+
+$('formAcceso').addEventListener('submit', e => { e.preventDefault(); entrar(false); });
+$('accCrear').addEventListener('click', () => entrar(true));
+$('btnSalir').addEventListener('click', async () => { if (sb && confirm('¿Cerrar sesión en este dispositivo? Tus datos siguen en la nube.')) await sb.auth.signOut(); });
+$('btnSalir').hidden = !sb;
+
+iniciarNube().then(cargar);
+
+/* ── PWA: instalar y trabajar sin internet ── */
+let promptInstalar = null;
+addEventListener('beforeinstallprompt', e => { e.preventDefault(); promptInstalar = e; $('btnInstalar').hidden = false; });
+$('btnInstalar').addEventListener('click', async () => { if (!promptInstalar) return; promptInstalar.prompt(); await promptInstalar.userChoice; promptInstalar = null; $('btnInstalar').hidden = true; });
+addEventListener('appinstalled', () => toast(`${S.gato} ya vive en tu pantalla de inicio`));
+if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
+  addEventListener('load', () => navigator.serviceWorker.register('sw.js').catch(() => {}));
+}
+</script>
+</body>
+</html>
